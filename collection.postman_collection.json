@@ -1,0 +1,254 @@
+{
+	"info": {
+		"_postman_id": "3084c1fe-89f9-48d0-b6d4-29af66d06bd4",
+		"name": "Homework Paste",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Submit a new paste",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"let desc_data=Date.now();\r",
+							"\r",
+							"pm.environment.set(\"randomString\", desc_data)"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let response=JSON.parse(responseBody);\r",
+							"\r",
+							"pm.environment.set(\"id\", response.id);\r",
+							"\r",
+							"pm.test(\"POST paste- Status code is 201\", function () {\r",
+							"    pm.response.to.have.status(201);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"ID was created\", function() {\r",
+							"    if(pm.expect(response.id).is.not.null)\r",
+							"        postman.setNextRequest(\"Get a paste\");\r",
+							"    else\r",
+							"        postman.setNextRequest(null);\r",
+							"    \r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"description\":\"Test_Description{{randomString}}\",\r\n    \"sections\":[\r\n        {\r\n            \"name\":\"Section{{randomString}}\",\r\n            \"syntax\":\"autodetect\",\r\n            \"contents\":\"Testing!{{randomString}}\"\r\n        }\r\n                ]\r\n}"
+				},
+				"url": {
+					"raw": "{{url}}",
+					"host": [
+						"{{url}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get a paste",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"GET paste - Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"let response=JSON.parse(responseBody);\r",
+							"pm.test(\"ID is correct\", function () {\r",
+							"    pm.expect(response.paste.id).to.be.eql(pm.environment.get(\"id\"));\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Sections->syntax value is autodetect\", function() {\r",
+							"    pm.expect(response.paste.sections[0].syntax).to.be.eql(\"autodetect\");\r",
+							"})\r",
+							"\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url}}/{{id}}",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"{{id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Remove a paste",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"DELETE paste - Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Content-Type is present\", function () {\r",
+							"    pm.response.to.have.header(\"Content-Type\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Content-Type value is correct\", function () {\r",
+							"    pm.response.headers.get(\"application/json\")\r",
+							"});\r",
+							"\r",
+							"/*pm.test(\"Check deleting without paste\", function () {\r",
+							"    pm.sendRequest(`${pm.environment.get(\"url\",\"id\")}`, \r",
+							"        function (err, response) {\r",
+							"        try {\r",
+							"\r",
+							"           pm.expect(response.json().errors[0].msg).to.be.eql(\"Paste not found\");\r",
+							"          \r",
+							"        } catch (err) {\r",
+							"            console.log(err);\r",
+							"        }\r",
+							"\r",
+							"    });\r",
+							"});*/"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{url}}/{{id}}",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"{{id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get a paste after deleting",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"\r",
+							"pm.test(\"Paste was deleted\", function() {\r",
+							"    pm.expect(pm.response.code).is.not.oneOf([200,201,202]);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response time is less than 700ms\", function () {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(700);\r",
+							"});\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url}}/{{id}}",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"{{id}}"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "apikey",
+		"apikey": [
+			{
+				"key": "key",
+				"value": "X-Auth-Token",
+				"type": "string"
+			},
+			{
+				"key": "value",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}
